@@ -63,11 +63,12 @@ def get_agent():
     )
     return agent
 
+agent = get_agent()
+
 @router.post("/agent/ask")
 async def ask_agent(request: PromptRequest):
     user_input = request.input
     if not user_input:
         raise HTTPException(status_code=400, detail="Missing input")
-    agent = get_agent()
     result = agent.invoke({"input": user_input})
     return {"output": result["output"]}
