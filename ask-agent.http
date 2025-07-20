@@ -1,0 +1,7 @@
+### Call MCP Agent's /ask endpoint
+POST http://localhost:8000/ask
+Content-Type: application/json
+
+{
+  "message": "Summarize this GitHub issue: https://github.com/anshul1790/mcp-basic-agent/issues/1"
+}
