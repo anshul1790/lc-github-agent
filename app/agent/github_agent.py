@@ -1,5 +1,4 @@
 from langchain import hub
-# from langchain.memory import ConversationBufferMemory
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain.agents import AgentExecutor, create_react_agent
@@ -10,8 +9,6 @@ from app.tools.github_issue_details import github_issue_details
 from app.tools.github_pr_details import github_pr_details
 from app.tools.list_top_issues import list_top_issues
 from app.tools.list_top_prs import list_top_prs
-
-from app.context.custom_context import RepoContextMemory
 
 
 from dotenv import load_dotenv
