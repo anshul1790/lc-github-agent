@@ -1,49 +1,45 @@
-import requests
 import re
+import requests
 from langchain.tools import Tool
+
+GITHUB_API = "https://api.github.com/repos"
+HEADERS = {
+    "Accept": "application/vnd.github.v3+json",
+    "User-Agent": "langchain-agent"
+}
 
 def _github_pr_details(pr_url: str) -> str:
     """
-    Get detailed information about a specific GitHub Pull Request.
-    Accepts formats like:
+    Fetch metadata for a GitHub Pull Request.
+    Supports:
+    - https://github.com/owner/repo/pull/123
     - https://github.com/owner/repo/pulls/123
     """
-    match = re.match(
-        r"https?://github\.com/([^/]+)/([^/]+)/(?:pull|pulls)/(\d+)",
-        pr_url.strip()
-    )
+    match = re.match(r"https?://github\.com/([^/]+)/([^/]+)/(?:pull|pulls)/(\d+)", pr_url.strip())
     if not match:
-        return "Final Answer:\n Invalid PR URL format. Use https://github.com/owner/repo/pull/123"
+        return "Invalid PR URL format. Use: https://github.com/owner/repo/pull/123"
 
     owner, repo, pr_number = match.groups()
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "langchain-agent"
-    }
-
     try:
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            return f"Final Answer:\n Failed to fetch PR details: {response.status_code} - {response.text}"
+        res = requests.get(f"{GITHUB_API}/{owner}/{repo}/pulls/{pr_number}", headers=HEADERS, timeout=5)
+        if res.status_code != 200:
+            return f"PR fetch failed: {res.status_code}"
 
-        pr_data = response.json()
+        data = res.json()
         return (
-            f"Final Answer:\n"
-            f"PR Number #{pr_data['number']}\n"
-            f"Title #{pr_data['title']}\n"
-            f"URL: {pr_data['url']}\n"
-            f"details: {pr_data.get('body', 'No description')[:2000]}\n"
+            f"🔀 PR #{data.get('number')}: {data.get('title', 'No title')}\n"
+            f"🔗 URL: {data.get('html_url')}\n"
+            f"📝 Description:\n{data.get('body', 'No description')[:1000]}"
         )
     except Exception as e:
-        return f"Final Answer:\n Error: {str(e)}"
+        return f"Error retrieving PR: {str(e)}"
 
 github_pr_details = Tool(
     name="GitHubPRDetails",
     func=_github_pr_details,
-    description="Get details of a GitHub Pull Request from its URL."
+    description="Fetch metadata and description of a GitHub Pull Request from its URL."
 )
 
+# Optional: CLI test
 if __name__ == "__main__":
     print(_github_pr_details("https://github.com/openai/openai-python/pull/2543"))

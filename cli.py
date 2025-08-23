@@ -1,9 +1,12 @@
-from app.routes.agent_router import agent_executor
+# cli_chat.py
+from app.agent.github_agent import GitHubAgent
 
-print("🤖 LangChain Agent Ready. Type 'exit' to quit.")
+agent = GitHubAgent(thread_id="cli-session")
+
+print("🤖 GitHub Agent Ready. Type 'exit' to quit.")
 while True:
-    user_input = input("🧑 You: ")
-    if user_input.lower() in ["exit", "quit"]:
+    user_input = input("You: ")
+    if user_input.lower() in {"exit", "quit"}:
         break
-    result = agent_executor.invoke({"input": user_input})
-    print(f"🤖 Bot: {result['output']}")
+    response = agent.chat(user_input)
+    print("Bot:", response)
