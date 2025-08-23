@@ -1,41 +1,45 @@
-from langchain.tools import tool
-import requests
 import re
+import requests
+from langchain.tools import Tool
 
-@tool
-def github_issue_details(repo_url_and_issue: str) -> str:
+GITHUB_API = "https://api.github.com/repos"
+HEADERS = {
+    "Accept": "application/vnd.github.v3+json",
+    "User-Agent": "langchain-agent"
+}
+
+def _github_issue_details(issue_url: str) -> str:
     """
-    Get detailed information about a specific GitHub issue, including title, description, and URL.
-    Accepts either 'https://github.com/owner/repo/issues/123' or 'https://github.com/owner/repo#123'
+    Fetch details of a GitHub issue.
+    Supports:
+    - https://github.com/owner/repo/issues/123
+    - https://github.com/owner/repo#123
     """
-    # Accept both formats
-    match = re.match(
-        r"https?://github\.com/([^/]+)/([^/]+)(?:/issues/|#)(\d+)", 
-        repo_url_and_issue.strip()
-    )
+    match = re.match(r"https?://github\.com/([^/]+)/([^/#]+)(?:/issues/|#)(\d+)", issue_url.strip())
     if not match:
-        return "Final Answer:\n❌ Invalid format. Use format like https://github.com/owner/repo/issues/123 or https://github.com/owner/repo#123"
+        return "Invalid format. Use: https://github.com/owner/repo/issues/123 or https://github.com/owner/repo#123"
 
-    owner, repo, issue_number = match.group(1), match.group(2), match.group(3)
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "langchain-agent"
-    }
-
+    owner, repo, issue_number = match.groups()
     try:
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            return f"Final Answer:\n❌ Failed to fetch issue details: {response.status_code} - {response.text}"
+        res = requests.get(f"{GITHUB_API}/{owner}/{repo}/issues/{issue_number}", headers=HEADERS, timeout=5)
+        if res.status_code != 200:
+            return f"Issue fetch failed: {res.status_code}"
 
-        issue = response.json()
+        data = res.json()
         return (
-            f"Final Answer:\n"
-            f"🧾 Issue #{issue['number']}: {issue['title']}\n"
-            f"📄 Description: {issue.get('body', 'No description')[:1000]}\n"
-            f"📎 URL: {issue['html_url']}"
+            f"🪪 Issue #{data.get('number')}: {data.get('title', 'No title')}\n"
+            f"🔗 URL: {data.get('html_url')}\n"
+            f"📝 Description:\n{data.get('body', 'No description')[:1000]}"
         )
-
     except Exception as e:
-        return f"Final Answer:\n❌ Error: {str(e)}"
+        return f"Error retrieving issue: {str(e)}"
+
+github_issue_details = Tool(
+    name="GitHubIssueDetails",
+    func=_github_issue_details,
+    description="Fetch metadata and description of a GitHub issue from its URL."
+)
+
+# Optional: CLI test
+if __name__ == "__main__":
+    print(_github_issue_details("https://github.com/openai/openai-python/issues/2544"))
