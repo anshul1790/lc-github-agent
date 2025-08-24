@@ -1,5 +1,5 @@
-### Call MCP Agent's /ask endpoint
-POST http://localhost:8000/ask
+### Call MCP Agent's /chat endpoint
+POST http://localhost:8000/chat
 Content-Type: application/json
 
 {
