@@ -1,4 +1,4 @@
-# cli_chat.py
+# cli.py
 from app.agent.github_agent import GitHubAgent
 
 agent = GitHubAgent(thread_id="cli-session")

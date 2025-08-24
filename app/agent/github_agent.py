@@ -97,7 +97,16 @@ class GitHubAgent:
 
     def _safe_call_agent(self, state: MessagesState):
         try:
-            return self._call_agent(state)
+            result = self._call_agent(state)
+            last_msg = result["messages"][-1].content.strip()
+
+            if not last_msg or "I don't know" in last_msg.lower():
+                fallback = AIMessage(
+                    content="🤔 I'm not sure how to help with that yet, but I'm learning every day. Could you rephrase or ask something else?")
+                return {"messages": state["messages"] + [fallback]}
+
+            return result
+
         except Exception as e:
             logger.error("Agent call failed: %s", str(e), exc_info=True)
             err = AIMessage(content=f"⚠️ Oops, something went wrong: {e}")
