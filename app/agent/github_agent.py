@@ -16,6 +16,8 @@ from app.tools.github_issue_details import github_issue_details
 from app.tools.github_pr_details import github_pr_details
 from app.tools.list_top_issues import list_top_issues
 from app.tools.list_top_prs import list_top_prs
+from app.tools.github_pr_review import github_review_pr
+from app.tools.github_issue_review import github_issue_fixer
 
 import logging
 
@@ -43,6 +45,8 @@ class GitHubAgent:
             github_pr_details,
             list_top_issues,
             list_top_prs,
+            github_review_pr,
+            github_issue_fixer
         ]
 
         self.react_prompt = hub.pull("hwchase17/react")
